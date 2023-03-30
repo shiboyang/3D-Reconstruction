@@ -67,27 +67,44 @@ void SingleCamera::svdP() {
     Eigen::JacobiSVD<Eigen::MatrixXf> svd;
     svd.compute(P, Eigen::ComputeThinU | Eigen::ComputeThinV);
     M = svd.matrixV().col(svd.matrixV().cols() - 1);
-    M.resize(3, 4);
-    A = M.leftCols(3);
-    b = M.rightCols(1);
-
-//    std::cout << "m: \n " << M << std::endl;
-//    std::cout << "A:\n" << A << std::endl << "b:\n" << b << std::endl;
+    M.resize(4, 3);
+    M.transposeInPlace();
+    A = M.leftCols(3);   //[3, 3]
+    b = M.rightCols(1);  //[3, 1]
 }
 
 void SingleCamera::workIntrinsicAndExtrinsic() {
     // homework3: 求解相机的内参和外参
     auto size = A.rows();
-    Eigen::RowVectorXf a1(size), a2(size), a3(size);
-    a1 = A.row(0);
-    a2 = A.row(1);
-    a3 = A.row(2);
-    auto roh = -1 / a3.norm();
+    Eigen::RowVector3f a1(A.row(0)), a2(A.row(1)), a3(A.row(2));
+
+    float roh = -1 / a3.norm();
     auto cx = pow(roh, 2) * (a1.dot(a3));
     auto cy = pow(roh, 2) * (a2.dot(a3));
     auto a1xa3 = a1.cross(a3);
+    auto a2xa3 = a2.cross(a3);
+    auto cos_theta = -1 * a1xa3.dot(a2xa3) / (a1xa3.norm() * a2xa3.norm());
+    auto theta = acos(cos_theta) * 180 / M_PI;
+    auto alpha = pow(roh, 2) * a1xa3.norm() * sin(theta);
+    auto beta = pow(roh, 2) * a2xa3.norm() * sin(theta);
 
-//    auto cos_theta = - 1 * ( a2.cross(a3)) /
+    auto r1 = a2xa3 / a2xa3.norm();
+    auto r3 = a3 / a3.norm();
+    auto r2 = r3.cross(r1);
+
+
+    K(0, 0) = alpha;
+    K(0, 1) = -alpha * cos(theta) / sin(theta);
+    K(0, 2) = cx;
+    K(1, 1) = beta / sin(theta);
+    K(1, 2) = cy;
+    K(2, 2) = 1;
+
+    R.row(0) = r1;
+    R.row(1) = r2;
+    R.row(2) = r3;
+
+    t = roh * K.inverse() * b;
 
     std::cout << "K is " << std::endl << K << std::endl;
     std::cout << "R is " << std::endl << R << std::endl;
@@ -97,7 +114,13 @@ void SingleCamera::workIntrinsicAndExtrinsic() {
 void SingleCamera::selfcheck(const Eigen::MatrixXf &w_check, const Eigen::MatrixXf &c_check) {
     float average_err = DBL_MAX;
     // homework4: 根据homework3求解得到的相机的参数，使用测试点进行验证，计算误差
+    Eigen::MatrixXf m(3, 4);
+    m << R, t;
 
+    auto res = world_coor * (K * m).transpose();
+
+    std::cout << "res: \n" << res << std::endl;
+    std::cout << "pixel_coor: \n" << pixel_coor << std::endl;
 
 
     std::cout << "The average error is " << average_err << "," << std::endl;
