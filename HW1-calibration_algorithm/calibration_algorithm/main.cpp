@@ -9,7 +9,7 @@ class SingleCamera {
 public:
     SingleCamera(Eigen::MatrixXf world_coor, Eigen::MatrixXf pixel_coor, int n)
             : world_coor(world_coor), pixel_coor(pixel_coor), point_num(n),
-              P(Eigen::MatrixXf::Zero(n, 12)), M(Eigen::MatrixXf::Zero(3, 4)),
+              P(Eigen::MatrixXf::Zero(2 * n, 12)), M(Eigen::MatrixXf::Zero(3, 4)),
               A(Eigen::MatrixXf::Zero(3, 3)), b(Eigen::MatrixXf::Zero(3, 1)),
               K(Eigen::MatrixXf::Zero(3, 3)), R(Eigen::MatrixXf::Zero(3, 3)),
               t(Eigen::MatrixXf::Zero(3, 1)) {}
@@ -41,24 +41,23 @@ void SingleCamera::composeP() {
     // homework1: 根据输入的二维点和三维点，构造P矩阵
     Eigen::RowVectorXf row(12), p(4);
     float u, v;
+    int p_idx = 0;
     for (int i = 0; i < point_num; i++) {
         // 一次生成两个方程系数
-        if (i % 2 == 0) {
-            p = world_coor.row(i);
-            u = pixel_coor(i, 0);
-            v = pixel_coor(i, 1);
-            row << p,
-                    Eigen::RowVectorXf::Zero(1, 4),
-                    -u * p;
-            P.row(i) = row;
-            row << Eigen::RowVectorXf::Zero(1, 4),
-                    p,
-                    -v * p;
-            P.row(i + 1) = row;
-        }
+        p = world_coor.row(i);
+        u = pixel_coor(i, 0);
+        v = pixel_coor(i, 1);
+        row << p,
+                Eigen::RowVectorXf::Zero(1, 4),
+                -u * p;
+        P.row(p_idx++) = row;
+        row << Eigen::RowVectorXf::Zero(1, 4),
+                p,
+                -v * p;
+        P.row(p_idx++) = row;
     }
 
-//    std::cout << "P:\n" << P << std::endl;
+    std::cout << "P:\n" << P << std::endl;
 
 }
 
@@ -71,6 +70,7 @@ void SingleCamera::svdP() {
     M.transposeInPlace();
     A = M.leftCols(3);   //[3, 3]
     b = M.rightCols(1);  //[3, 1]
+    //std::cout << "A:\n" << A << "b:\n" << b << "M\n" << M << std::endl;
 }
 
 void SingleCamera::workIntrinsicAndExtrinsic() {
@@ -78,13 +78,16 @@ void SingleCamera::workIntrinsicAndExtrinsic() {
     auto size = A.rows();
     Eigen::RowVector3f a1(A.row(0)), a2(A.row(1)), a3(A.row(2));
 
-    float roh = -1 / a3.norm();
+    float roh = 1 / a3.norm();
+
     auto cx = pow(roh, 2) * (a1.dot(a3));
     auto cy = pow(roh, 2) * (a2.dot(a3));
+
     auto a1xa3 = a1.cross(a3);
     auto a2xa3 = a2.cross(a3);
     auto cos_theta = -1 * a1xa3.dot(a2xa3) / (a1xa3.norm() * a2xa3.norm());
-    auto theta = acos(cos_theta) * 180 / M_PI;
+    auto theta = acos(cos_theta) * M_PI / 180;
+
     auto alpha = pow(roh, 2) * a1xa3.norm() * sin(theta);
     auto beta = pow(roh, 2) * a2xa3.norm() * sin(theta);
 
@@ -109,6 +112,11 @@ void SingleCamera::workIntrinsicAndExtrinsic() {
     std::cout << "K is " << std::endl << K << std::endl;
     std::cout << "R is " << std::endl << R << std::endl;
     std::cout << "t is " << std::endl << t.transpose() << std::endl;
+
+
+//    std::cout << "roh*M:\n" << roh * M << std::endl
+//              << "K(R T):\n" << K * (Eigen::MatrixXf(3, 4) << R, t).finished()
+//              << std::endl;
 }
 
 void SingleCamera::selfcheck(const Eigen::MatrixXf &w_check, const Eigen::MatrixXf &c_check) {
@@ -117,10 +125,14 @@ void SingleCamera::selfcheck(const Eigen::MatrixXf &w_check, const Eigen::Matrix
     Eigen::MatrixXf m(3, 4);
     m << R, t;
 
-    auto res = world_coor * (K * m).transpose();
+    std::cout << "M" << m << std::endl;
 
-    std::cout << "res: \n" << res << std::endl;
-    std::cout << "pixel_coor: \n" << pixel_coor << std::endl;
+    auto res = w_check * (K * m).transpose();
+
+    for (int i = 0; i < c_check.rows(); ++i) {
+        std::cout << "res: (" << res(i, 0) / res(i, 2) << ", " << res(i, 1) / res(i, 2) << ") "
+                  << "c_check: " << c_check.row(i) << "\n";
+    }
 
 
     std::cout << "The average error is " << average_err << "," << std::endl;
