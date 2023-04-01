@@ -57,7 +57,7 @@ void SingleCamera::composeP() {
         P.row(p_idx++) = row;
     }
 
-    std::cout << "P:\n" << P << std::endl;
+//    std::cout << "P:\n" << P << std::endl;
 
 }
 
@@ -76,18 +76,18 @@ void SingleCamera::workIntrinsicAndExtrinsic() {
     // homework3: 求解相机的内参和外参
     Eigen::RowVector3f a1(A.row(0)), a2(A.row(1)), a3(A.row(2));
 
-    float roh = 1 / a3.norm();
+    auto roh = 1 / a3.norm();
 
-    auto cx = pow(roh, 2) * (a1.dot(a3));
-    auto cy = pow(roh, 2) * (a2.dot(a3));
+    auto cx = roh * roh * (a1.dot(a3));
+    auto cy = roh * roh * (a2.dot(a3));
 
     auto a1xa3 = a1.cross(a3);
     auto a2xa3 = a2.cross(a3);
     auto cos_theta = -1 * a1xa3.dot(a2xa3) / (a1xa3.norm() * a2xa3.norm());
     auto sin_theta = sqrt(1 - cos_theta * cos_theta);
 
-    auto alpha = pow(roh, 2) * a1xa3.norm() * sin_theta;
-    auto beta = pow(roh, 2) * a2xa3.norm() * sin_theta;
+    auto alpha = roh * roh * a1xa3.norm() * sin_theta;
+    auto beta = roh * roh * a2xa3.norm() * sin_theta;
 
     auto r1 = a2xa3 / a2xa3.norm();
     auto r3 = a3 / a3.norm();
