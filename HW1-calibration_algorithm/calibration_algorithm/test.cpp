@@ -14,16 +14,12 @@ using namespace Eigen;
 using std::cout;
 
 int main() {
-    MatrixXd C;
-    C.setRandom(27, 18);
-    JacobiSVD<MatrixXd> svd(C, ComputeThinU | ComputeThinV);
-    MatrixXd Cp = svd.matrixU() * svd.singularValues().asDiagonal() * svd.matrixV().transpose();
-    MatrixXd diff = Cp - C;
-    cout << "diff:\n" << diff.array().abs().sum() << "\n";
-
-    MatrixXd v = svd.matrixV().rightCols(1);
-    cout << "C @ v: " << (C * v) << "\n";
-
+    RowVectorXf x(12);
+    x.setRandom();
+    std::cout << "Initial x: " << x << std::endl;
+    auto reshaped_x = x.reshaped(4, 3);
+    cout << "Reshaped x:\n" << reshaped_x << "\n";
+    cout << "Reshaped x.t:\n" << reshaped_x.transpose() << "\n";
 
 
     return 0;

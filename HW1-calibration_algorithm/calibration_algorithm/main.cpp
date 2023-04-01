@@ -70,12 +70,10 @@ void SingleCamera::svdP() {
     M.transposeInPlace();
     A = M.leftCols(3);   //[3, 3]
     b = M.rightCols(1);  //[3, 1]
-    //std::cout << "A:\n" << A << "b:\n" << b << "M\n" << M << std::endl;
 }
 
 void SingleCamera::workIntrinsicAndExtrinsic() {
     // homework3: 求解相机的内参和外参
-    auto size = A.rows();
     Eigen::RowVector3f a1(A.row(0)), a2(A.row(1)), a3(A.row(2));
 
     float roh = 1 / a3.norm();
@@ -86,37 +84,32 @@ void SingleCamera::workIntrinsicAndExtrinsic() {
     auto a1xa3 = a1.cross(a3);
     auto a2xa3 = a2.cross(a3);
     auto cos_theta = -1 * a1xa3.dot(a2xa3) / (a1xa3.norm() * a2xa3.norm());
-    auto theta = acos(cos_theta) * M_PI / 180;
+    auto sin_theta = sqrt(1 - cos_theta * cos_theta);
 
-    auto alpha = pow(roh, 2) * a1xa3.norm() * sin(theta);
-    auto beta = pow(roh, 2) * a2xa3.norm() * sin(theta);
+    auto alpha = pow(roh, 2) * a1xa3.norm() * sin_theta;
+    auto beta = pow(roh, 2) * a2xa3.norm() * sin_theta;
 
     auto r1 = a2xa3 / a2xa3.norm();
     auto r3 = a3 / a3.norm();
     auto r2 = r3.cross(r1);
-
+//    auto r1 = 1 * a2xa3 / a2xa3.norm();
+//    auto r2 = -r1 * cos_theta / sin_theta - (roh * roh) / alpha * a1xa3;
+//    auto r3 = r1.cross(r2);
 
     K(0, 0) = alpha;
-    K(0, 1) = -alpha * cos(theta) / sin(theta);
+    K(0, 1) = -alpha * cos_theta / sin_theta;
     K(0, 2) = cx;
-    K(1, 1) = beta / sin(theta);
+    K(1, 1) = beta / sin_theta;
     K(1, 2) = cy;
     K(2, 2) = 1;
-
     R.row(0) = r1;
     R.row(1) = r2;
     R.row(2) = r3;
-
     t = roh * K.inverse() * b;
 
     std::cout << "K is " << std::endl << K << std::endl;
     std::cout << "R is " << std::endl << R << std::endl;
     std::cout << "t is " << std::endl << t.transpose() << std::endl;
-
-
-//    std::cout << "roh*M:\n" << roh * M << std::endl
-//              << "K(R T):\n" << K * (Eigen::MatrixXf(3, 4) << R, t).finished()
-//              << std::endl;
 }
 
 void SingleCamera::selfcheck(const Eigen::MatrixXf &w_check, const Eigen::MatrixXf &c_check) {
@@ -125,15 +118,17 @@ void SingleCamera::selfcheck(const Eigen::MatrixXf &w_check, const Eigen::Matrix
     Eigen::MatrixXf m(3, 4);
     m << R, t;
 
-    std::cout << "M" << m << std::endl;
-
-    auto res = w_check * (K * m).transpose();
+    auto trans_xyz = w_check * (K * m).transpose();
 
     for (int i = 0; i < c_check.rows(); ++i) {
-        std::cout << "res: (" << res(i, 0) / res(i, 2) << ", " << res(i, 1) / res(i, 2) << ") "
-                  << "c_check: " << c_check.row(i) << "\n";
+        if (i == 0) average_err = 0;
+        auto trans_z = trans_xyz(i, 2);
+        auto trans_x = trans_xyz(i, 0) / trans_z;
+        auto trans_y = trans_xyz(i, 1) / trans_z;
+        average_err += abs(trans_x - c_check(i, 0));
+        average_err += abs(trans_y - c_check(i, 1));
     }
-
+    average_err /= c_check.size();
 
     std::cout << "The average error is " << average_err << "," << std::endl;
     if (average_err > 0.1) {
