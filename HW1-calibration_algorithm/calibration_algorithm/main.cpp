@@ -76,7 +76,7 @@ void SingleCamera::workIntrinsicAndExtrinsic() {
     // homework3: 求解相机的内参和外参
     Eigen::RowVector3f a1(A.row(0)), a2(A.row(1)), a3(A.row(2));
 
-    auto roh = 1 / a3.norm();
+    auto roh = -1 / a3.norm();
 
     auto cx = roh * roh * (a1.dot(a3));
     auto cy = roh * roh * (a2.dot(a3));
@@ -89,12 +89,17 @@ void SingleCamera::workIntrinsicAndExtrinsic() {
     auto alpha = roh * roh * a1xa3.norm() * sin_theta;
     auto beta = roh * roh * a2xa3.norm() * sin_theta;
 
-    auto r1 = a2xa3 / a2xa3.norm();
-    auto r3 = a3 / a3.norm();
-    auto r2 = r3.cross(r1);
-//    auto r1 = 1 * a2xa3 / a2xa3.norm();
-//    auto r2 = -r1 * cos_theta / sin_theta - (roh * roh) / alpha * a1xa3;
-//    auto r3 = r1.cross(r2);
+//    auto r1 = a2xa3 / a2xa3.norm();
+//    auto r3 = a3 / a3.norm();
+//    auto r2 = r3.cross(r1);
+    auto r1 = 1 * a2xa3 / a2xa3.norm();
+    auto r2 = -r1 * cos_theta / sin_theta - (roh * roh) / alpha * a1xa3;
+    auto r3 = r1.cross(r2);
+    // calculate the sign of roh
+    auto rohs = r3.array() / a3.array();
+    if (rohs[0] > 0) {
+        roh *= -1;
+    }
 
     K(0, 0) = alpha;
     K(0, 1) = -alpha * cos_theta / sin_theta;

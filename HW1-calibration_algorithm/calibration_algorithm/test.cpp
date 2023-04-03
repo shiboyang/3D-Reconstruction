@@ -14,12 +14,14 @@ using namespace Eigen;
 using std::cout;
 
 int main() {
-    RowVectorXf x(12);
-    x.setRandom();
-    std::cout << "Initial x: " << x << std::endl;
-    auto reshaped_x = x.reshaped(4, 3);
-    cout << "Reshaped x:\n" << reshaped_x << "\n";
-    cout << "Reshaped x.t:\n" << reshaped_x.transpose() << "\n";
+    RowVectorXf x;
+    RowVectorXf y;
+    x.setRandom(1, 3);
+    y = x * 2;
+
+    cout << "x: " << x << "\n"
+         << "y: " << y << "\n"
+         << "y/x: " << y.array() / x.array();
 
 
     return 0;
