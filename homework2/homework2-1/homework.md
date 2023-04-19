@@ -1,0 +1,7 @@
+# Triangulate
+
+本次作业为大家提供了一个相机仿真的环境，通过加载一个小房子的模型，并给定相机的参数和运动轨迹，因此我们可以获取到小房子在相机里边的投影的图像和对应的相机的位姿。
+
+本次作业需要大家在已知相机的位姿和图像上点的情况下，计算出二维点在三维中的位置，并且在pangolin可视化中显示出来。
+
+需要大家实现的是estimator/triangulation.cpp中的TriangulatePoints和TriangulatePoint两个函数。因此，首先实现TriangulatePoint函数，实现单个三维点的估计功能，其次再实现TriangulatePoints函数，遍历所有的点实现所有点的三维点的估计功能。

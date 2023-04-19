@@ -1,0 +1,8 @@
+# Essential Matrix
+
+本次作业为大家提供了一个相机仿真的环境，通过加载一个小房子的模型，并给定相机的参数和运动轨迹，因此我们可以获取到小房子在相机中的投影图像和对应的相机位姿。
+
+本次作业需要大家在已知相机的图像匹配的情况下，在estimator/essential_matrix.cpp中实现两个函数EssentialMatrixFromPose和EssentialMatrixEightPointEstimate，其中EssentialMatrixFromPose是根据已知的位姿求出Essential矩阵，EssentialMatrixEightPointEstimate是八点法求解Essential矩阵的方法。
+
+求解出两个矩阵，理论上来说，这两个矩阵的差距只有一个scale，将两个矩阵归一化之后，两个矩阵应该是相同的，这个部分需要同学们自行验证。 
+
