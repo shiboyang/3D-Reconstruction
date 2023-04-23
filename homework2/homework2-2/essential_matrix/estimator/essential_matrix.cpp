@@ -7,6 +7,8 @@
 #include <Eigen/SVD>
 #include <iostream>
 
+using namespace Eigen;
+
 void CenterAndNormalizeImagePoints(const std::vector<Eigen::Vector2d> &points,
                                    std::vector<Eigen::Vector2d> *normed_points,
                                    Eigen::Matrix3d *matrix) {
@@ -26,9 +28,9 @@ void CenterAndNormalizeImagePoints(const std::vector<Eigen::Vector2d> &points,
 
     // Compose normalization matrix
     const double norm_factor = std::sqrt(2.0) / rms_mean_dist;
-    *matrix << norm_factor,            0,  -norm_factor * centroid(0),
-                         0,  norm_factor,  -norm_factor * centroid(1),
-                         0,            0,                                 1;
+    *matrix << norm_factor, 0, -norm_factor * centroid(0),
+            0, norm_factor, -norm_factor * centroid(1),
+            0, 0, 1;
 
     // Apply normalization matrix
     normed_points->resize(points.size());
@@ -54,6 +56,8 @@ void CenterAndNormalizeImagePoints(const std::vector<Eigen::Vector2d> &points,
         const double inv_np_2 = 1.0 / np_2;
         (*normed_points)[i](0) = np_0 * inv_np_2;
         (*normed_points)[i](1) = np_1 * inv_np_2;
+        const Vector2d xy{np_0 * inv_np_2, np_1 * inv_np_2};
+        std::cout << "center and normalized point dist: " << sqrt((xy - centroid).squaredNorm()) << "\n";
     }
 }
 
@@ -101,6 +105,66 @@ Eigen::Matrix3d EssentialMatrixEightPointEstimate(const std::vector<Eigen::Vecto
     E = points2_norm_matrix.transpose() * f2 * points1_norm_matrix;
     return E;
 }
+//
+//void center_and_normalize_point(const std::vector<Vector2d> &points, std::vector<Vector2d> &norm_points,
+//                                Matrix3d &norm_matrix) {
+//    Vector2d centroid{0, 0};
+//    double mean_dist = 0;
+//
+//    for (const Vector2d &point: points) {
+//        centroid += point;
+//    }
+//    centroid /= points.size();
+//
+//    for (const Vector2d &point: points) {
+//        mean_dist += (point - centroid).squaredNorm();
+//    }
+//    mean_dist = sqrt(mean_dist / points.size());
+//    const double factor = sqrt(2.0) / mean_dist;
+//
+//    for (const Vector2d &point: points) {
+//        Vector2d xy;
+//        xy << (point - centroid) * factor;
+//        norm_points.push_back(xy);
+//    }
+//    norm_matrix << factor, 0, -factor * centroid(0),
+//            0, factor, -factor * centroid(1),
+//            0, 0, 1;
+//}
+//
+//
+//Matrix3d EssentialMatrixEightPointEstimate(const std::vector<Vector2d> &points1,
+//                                           const std::vector<Vector2d> &points2) {
+//
+//    Matrix3d E, norm_matrix1, norm_matrix2;
+//    std::vector<Vector2d> norm_points1, norm_points2;
+//    MatrixXd W(points1.size(), 9), F1, F2;
+//
+//    center_and_normalize_point(points1, norm_points1, norm_matrix1);
+//    center_and_normalize_point(points2, norm_points2, norm_matrix2);
+//
+//    for (int i = 0; i < norm_points1.size(); ++i) {
+//        const double u = norm_points1[i](0);
+//        const double v = norm_points1[i](1);
+//        const double up = norm_points2[i](0);
+//        const double vp = norm_points2[i](1);
+//        W.row(i) << u * up, v * up, up, u * vp, v * vp, vp, u, v, 1;
+//    }
+//    JacobiSVD<MatrixXd> svd;
+//    svd.compute(W, Eigen::ComputeThinV | Eigen::ComputeThinU);
+//    F1 = svd.matrixV().col(svd.matrixV().cols() - 1);
+//    F1.resize(3, 3);
+//    F1.transposeInPlace();
+//
+//    svd.compute(F1, Eigen::ComputeThinV | Eigen::ComputeThinU);
+//    auto S = svd.singularValues();
+//    S[2] = 0;
+//    F2 = svd.matrixU() * S.asDiagonal() * svd.matrixV().transpose();
+//
+//    E = norm_matrix2.transpose() * F2 * norm_matrix1;
+//    return E;
+//}
+
 
 Eigen::Matrix3d EssentialMatrixFromPose(const Eigen::Matrix3d &R,
                                         const Eigen::Vector3d &t) {
