@@ -6,15 +6,16 @@
 #include <iostream>
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/opencv.hpp>
+#include <typeinfo>
 
 using namespace std;
 using namespace cv;
 using namespace Eigen;
 
 int main() {
-    Mat img;
-    Matrix<int, 100, 100> m;
-    m.fill(255);
-    eigen2cv(m, img);
+    auto x = 100 / 30;
+
+    std::cout << x << std::endl;
+
     return 0;
 }

@@ -15,6 +15,7 @@ RNG rng(12345);
 Mat findEssentialMatrixRANSAC(const vector<Point2f> &pts1, const vector<Point2f> &pts2, const Mat &K,
                               vector<uchar> &inliers) {
     int N = pts1.size();
+    int num_points = pts1.size();
     int max_inliers = 0;
     Mat best_E;
     const float p = 0.99;
@@ -33,7 +34,7 @@ Mat findEssentialMatrixRANSAC(const vector<Point2f> &pts1, const vector<Point2f>
         sample_points1.clear();
         sample_points2.clear();
 
-        for (const auto &i: sample_some_int(0, N, 8, rng)) {
+        for (const auto &i: sample_some_int(0, num_points, 8, rng)) {
             const Vector2d p1{norm_pts1[i].x, norm_pts1[i].y};
             const Vector2d p2{norm_pts2[i].x, norm_pts2[i].y};
             sample_points1.push_back(p1);
@@ -50,7 +51,7 @@ Mat findEssentialMatrixRANSAC(const vector<Point2f> &pts1, const vector<Point2f>
         // homework4: 如果当前内点数量大于最大内点数量，则更新最佳Essential Matrix
         if (num_inliers > max_inliers) {
             max_inliers = num_inliers;
-            const double e = 1.0 - num_inliers / norm_pts1.size();
+            const double e = 1.0 - static_cast<double>(num_inliers) / num_points;
             N = log(1 - p) / log(1 - pow(1 - e, 8));
             best_e = essential_matrix;
             if (iter >= N) break;
