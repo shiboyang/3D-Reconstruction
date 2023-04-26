@@ -77,7 +77,6 @@ void center_and_normalize_point(const std::vector<Vector2d> &points, std::vector
 
 Matrix3d estimate_essential_matrix(const std::vector<Vector2d> &points1,
                                    const std::vector<Vector2d> &points2) {
-
     Matrix3d E, norm_matrix1, norm_matrix2;
     std::vector<Vector2d> norm_points1, norm_points2;
     MatrixXd W(points1.size(), 9), F1, F2;
@@ -98,13 +97,12 @@ Matrix3d estimate_essential_matrix(const std::vector<Vector2d> &points1,
     F1.resize(3, 3);
     F1.transposeInPlace();
 
-    svd.compute(F1, Eigen::ComputeThinV | Eigen::ComputeThinU);
-    auto S = svd.singularValues();
-    S[2] = 0;
-    F2 = svd.matrixU() * S.asDiagonal() * svd.matrixV().transpose();
+    E = norm_matrix2.transpose() * F1 * norm_matrix1;
 
-    E = norm_matrix2.transpose() * F2 * norm_matrix1;
-
+    Eigen::JacobiSVD<Eigen::Matrix3d> esvd(E, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    Eigen::Vector3d singular_values = esvd.singularValues();
+    singular_values[2] = 0;
+    E = esvd.matrixU() * singular_values.asDiagonal() * esvd.matrixV().transpose();
     E.normalize();
     return E;
 }
@@ -123,7 +121,7 @@ std::vector<uint> sample_some_int(int first, int last, int k, RNG rng) {
     return out;
 }
 
-int calculate_inliers(const Matrix3d &E, std::vector<Point2f> &pts1, std::vector<Point2f> &pts2, double t,
+int calculate_inliers(const Matrix3d &E, const std::vector<Point2f> &pts1, const std::vector<Point2f> &pts2, double t,
                       std::vector<uchar> &inliers) {
     int num_inliers = 0;
     // l' = E * p
@@ -132,7 +130,7 @@ int calculate_inliers(const Matrix3d &E, std::vector<Point2f> &pts1, std::vector
         const Vector3d p2{pts2[i].x, pts2[i].y, 1};
         const Vector3d L = E * p1;
         // calculate distance from a point to a line
-        const double d = abs(L.dot(p2)) / sqrt(L.squaredNorm());
+        const double d = abs(L.dot(p2)) / sqrt(L[0] * L[0] + L[1] * L[1]);
         if (d < t) {
             ++num_inliers;
             inliers.push_back(true);
@@ -142,6 +140,17 @@ int calculate_inliers(const Matrix3d &E, std::vector<Point2f> &pts1, std::vector
 
     }
     return num_inliers;
+}
+
+void cross_check(const std::vector<DMatch> &matches1, const std::vector<DMatch> &matches2,
+                 std::vector<DMatch> &out) {
+    for (const auto m1: matches1) {
+        for (const auto m2: matches2) {
+            if (m1.queryIdx == m2.trainIdx && m1.trainIdx == m2.queryIdx) {
+                out.push_back(m1);
+            }
+        }
+    }
 }
 
 
@@ -177,6 +186,5 @@ void image_show(Mat &img1, std::vector<Point2f> &pts1, Mat &img2, std::vector<Po
     drawMatches(img1, keypoints1, img2, keypoints2, show_match, image);
     imshow("Matches Image", image);
     waitKey();
-
 }
 

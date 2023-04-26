@@ -54,7 +54,6 @@ Mat findEssentialMatrixRANSAC(const vector<Point2f> &pts1, const vector<Point2f>
             N = log(1 - p) / log(1 - pow(1 - e, 8));
             best_e = essential_matrix;
             if (iter >= N) break;
-
         }
         // homework4 end
     }
@@ -94,13 +93,17 @@ int main() {
     // homework1: 提取SIFT特征，并进行特征匹配，可以调用OpenCV的函数
     std::vector<KeyPoint> keypoints1, keypoints2;
     Mat descriptors1, descriptors2;
-    std::vector<DMatch> matches;
+    std::vector<DMatch> matches1, matches2, matches;
 
     extract_sift_feature(img1, keypoints1, descriptors1);
     extract_sift_feature(img2, keypoints2, descriptors2);
     std::cout << "img1 descriptors shape: " << descriptors1.rows << "x" << descriptors1.cols << "\n";
     std::cout << "img2 descriptors shape: " << descriptors2.rows << "x" << descriptors2.cols << "\n";
-    filterMatchedPoint(descriptors1, descriptors2, matches, 0.6);
+    filterMatchedPoint(descriptors1, descriptors2, matches1, 0.6);
+    filterMatchedPoint(descriptors2, descriptors1, matches2, 0.6);
+    // 在本次作业中 必须使用交叉验证
+    cross_check(matches1, matches2, matches);
+
     std::cout << "matched point :" << matches.size() << "\n";
 
     for (const DMatch &match: matches) {
@@ -124,11 +127,13 @@ int main() {
 
     cout << "Essential Matrix From OpenCV:" << endl << E_cv << endl;
 
+    cout << "E_cv/E :\n" << E_cv / E << endl;
+
     // 可视化内点匹配
     vector<DMatch> inlier_matches;
 
     // 由于特征点匹配过于密集，可视化的效果不够明显，可以将 i++ 改为 i += 20
-    for (size_t i = 0; i < inliers.size(); i+=200) {
+    for (size_t i = 0; i < inliers.size(); i += 20) {
         if (inliers[i]) {
             inlier_matches.push_back(matches[i]);
         }

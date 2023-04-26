@@ -11,10 +11,9 @@ using namespace std;
 using namespace cv;
 using namespace Eigen;
 
-int main()
-{
+int main() {
     Mat img;
-    Matrix<int,100,100> m ;
+    Matrix<int, 100, 100> m;
     m.fill(255);
     eigen2cv(m, img);
     return 0;

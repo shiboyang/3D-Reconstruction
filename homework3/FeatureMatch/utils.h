@@ -49,11 +49,14 @@ Matrix3d estimate_essential_matrix(const std::vector<Vector2d> &points1,
 std::vector<uint> sample_some_int(int first, int last, int k, RNG rng);
 
 int calculate_inliers(const Matrix3d &E,
-                      std::vector<Point2f> &pts1,
-                      std::vector<Point2f> &pts2,
+                      const std::vector<Point2f> &pts1,
+                      const std::vector<Point2f> &pts2,
                       double t,
                       std::vector<uchar> &inliers);
 
+void cross_check(const std::vector<DMatch> &matches1,
+                 const std::vector<DMatch> &matches2,
+                 std::vector<DMatch> &out);
 
 void image_show(Mat &src,
                 std::vector<KeyPoint> &keypoints);
