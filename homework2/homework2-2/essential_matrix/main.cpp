@@ -43,8 +43,8 @@ int main(int argc, char **argv) {
 
     // verify E
     for (int i = 0; i < points1.size(); i++) {
-        const Eigen::Vector3d p1 (normal_points1[i][0],normal_points1[i][1], 1);
-        const Eigen::Vector3d p2 (normal_points2[i][0],normal_points2[i][1], 1);
+        const Eigen::Vector3d p1(normal_points1[i][0], normal_points1[i][1], 1);
+        const Eigen::Vector3d p2(normal_points2[i][0], normal_points2[i][1], 1);
         std::cout << i << "th point p'.T x E x p = " << p2.transpose() * E * p1 << std::endl;
         std::cout << i << "th point p'.T x E_gt x p = " << p2.transpose() * E_gt * p1 << std::endl;
     }
