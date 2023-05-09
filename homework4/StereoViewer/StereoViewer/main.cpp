@@ -52,6 +52,9 @@ int main(int argc, char **argv) {
     cv::warpPerspective(img1, out1, M1, out1.size());
     cv::warpPerspective(img2, out2, M2, out2.size());
 
+    apply_holograph_matrix(points1, H1);
+    apply_holograph_matrix(points2, H2);
+
     /////// end homework2 end ///////
 
     cv::imshow("warp1", out1);

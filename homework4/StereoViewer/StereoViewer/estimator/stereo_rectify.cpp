@@ -140,3 +140,14 @@ Eigen::Vector3d calculate_epipolar(const std::vector<Eigen::Vector2d> &points1,
 
     return epipolar / epipolar.z();
 }
+
+
+void apply_holograph_matrix(const std::vector<Eigen::Vector2d> &points, const Eigen::Matrix3d &H) {
+    Eigen::Vector3d tmp_p;
+    for (const auto &p: points) {
+        tmp_p = H * Eigen::Vector3d{p(0), p(1), 1};
+        tmp_p /= tmp_p.z();
+        std::cout << "(" << tmp_p.x() << ", " << tmp_p.y() << ")" << "\n";
+    }
+    std::cout << "------------" << "\n";
+}

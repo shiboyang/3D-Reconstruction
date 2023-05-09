@@ -33,3 +33,5 @@ Eigen::Matrix3d calculate_holograph_matrix1(const Eigen::Matrix3d *H2,
 Eigen::Vector3d calculate_epipolar(const std::vector<Eigen::Vector2d> &points1,
                                    const Eigen::Matrix3d &F);
 
+
+void apply_holograph_matrix(const std::vector<Eigen::Vector2d> &points, const Eigen::Matrix3d &H);
