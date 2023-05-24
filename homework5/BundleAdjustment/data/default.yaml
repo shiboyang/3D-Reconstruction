@@ -1,0 +1,8 @@
+%YAML:1.0
+dataset_dir: ../data
+
+# camera intrinsics
+camera.fx: 2556.4534490056876
+camera.fy: 2556.4534490056876
+camera.cx: 1536
+camera.cy: 1152
