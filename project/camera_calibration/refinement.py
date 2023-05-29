@@ -228,7 +228,7 @@ class Distortion:
         return L + y * dLdy + dqydy
 
 
-def refine_all_params(img_points: List[np.ndarray], obj_points: List[np.ndarray],
+def refine_all_params(img_points: List[List[np.ndarray]], obj_points: List[List[np.ndarray]],
                       intrinsic: np.ndarray,
                       rotate_vector: List[np.ndarray],
                       translate_vector: List[np.ndarray],

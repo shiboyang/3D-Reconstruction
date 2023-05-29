@@ -6,7 +6,7 @@ import numpy as np
 from helper import homogeneous
 
 
-def calculate_lens_distortion(img_points: List[np.ndarray], obj_points: List[np.ndarray],
+def calculate_lens_distortion(img_points: List[List[np.ndarray]], obj_points: List[List[np.ndarray]],
                               intrinsic_matrix: np.ndarray,
                               rotate_vector: List[np.ndarray],
                               translate_vector: List[np.ndarray]):
