@@ -97,7 +97,7 @@ bool CheckCheirality(const Eigen::Matrix3d& R, const Eigen::Vector3d& t,
   return !points3D->empty();
 }
 
-Eigen::Matrix3x4d GetProjectMatrix(Eigen::Matrix3d intrinsic_matrix, Eigen::Matrix4d Tcw) {
+Eigen::Matrix3x4d GetProjectMatrix(const Eigen::Matrix3d& intrinsic_matrix, Eigen::Matrix4d Tcw) {
     Eigen::Matrix3x4d ProjectMat;
     ProjectMat.setZero();
     ProjectMat.block<3, 3>(0, 0) = intrinsic_matrix;

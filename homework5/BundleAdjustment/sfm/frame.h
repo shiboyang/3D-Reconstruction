@@ -22,7 +22,7 @@ struct Frame {
     unsigned long keyframe_id_ = 0;  // id of key frame
     bool is_keyframe_ = false;       // 是否为关键帧
     double time_stamp_;              // 时间戳，暂不使用
-    SE3 pose_;                       // Twc 形式Pose
+    SE3 pose_;                       // Twc 形式Pose wc指的是相机坐标系到世界坐标系到
     SE3 init_pose_;                  // 没有经过BA优化之前的pose
     std::mutex pose_mutex_;          // Pose数据锁
     cv::Mat img_;                    // image
@@ -59,7 +59,7 @@ struct Frame {
     /// 设置关键帧并分配并键帧id
     void SetKeyFrame();
 
-    /// 工厂构建模式，分配id 
+    /// 工厂构建模式，分配id
     static std::shared_ptr<Frame> CreateFrame();
 };
 

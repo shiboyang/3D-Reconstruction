@@ -10,7 +10,7 @@ VisualSFM::VisualSFM(std::string &config_path)
 bool VisualSFM::Init() {
     std::cout << "Start Init " << std::endl;
     // read from config file
-    if (Config::SetParameterFile(config_file_path_) == false) {
+    if (!Config::SetParameterFile(config_file_path_)) {
         return false;
     }
     

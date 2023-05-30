@@ -69,4 +69,4 @@ bool CheckCheirality(const Eigen::Matrix3d& R, const Eigen::Vector3d& t,
                      const std::vector<Eigen::Vector2d>& points2,
                      std::vector<Eigen::Vector3d>* points3D);
 
-Eigen::Matrix3x4d GetProjectMatrix(Eigen::Matrix3d intrinsic_matrix, Eigen::Matrix4d Tcw);
+Eigen::Matrix3x4d GetProjectMatrix(const Eigen::Matrix3d& intrinsic_matrix, Eigen::Matrix4d Tcw);
