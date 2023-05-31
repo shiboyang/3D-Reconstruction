@@ -42,7 +42,7 @@ void VisualSFM::Run() {
     int idx = 0;
     while (1) {
         // 当测试两张图像BA时，请将设定：idx==2, 如果测试incremental BA, idx==4
-        if(idx == 2) {
+        if(idx == 4) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
             continue;
         }

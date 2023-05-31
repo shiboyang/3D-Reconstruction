@@ -28,21 +28,28 @@ namespace sfm {
                         const T *const P_w,
                         T *residuals) const {
             /////////////////////// homework2 ////////////////////////////
+            Eigen::Matrix<T, 2, 1> P = m_observed_p.cast<T>();
+            T observed_p[2];
+            observed_p[0] = T(P(0));
+            observed_p[1] = T(P(1));
 
-            residuals[0] = T(0);
-            residuals[1] = T(0);
+            // Convert quaternion from Eigen convention (x, y, z, w)
+            // to Ceres convention (w, x, y, z)
+            T q_ceres[4] = {q[3], q[0], q[1], q[2]};
             T Pc[3];
-            ceres::QuaternionRotatePoint(q, P_w, Pc);
+            ceres::QuaternionRotatePoint(q_ceres, P_w, Pc);
             Pc[0] += t[0];
             Pc[1] += t[1];
             Pc[2] += t[2];
 
-            auto u = fx * Pc[0] + cx;
-            auto v = fy * Pc[1] + cy;
-            auto w = Pc[2];
+            T u = Pc[0] / Pc[2];
+            T v = Pc[1] / Pc[2];
 
-            residuals[0] = m_observed_p[0] - u / w;
-            residuals[1] = m_observed_p[1] - v / w;
+            T predicted_x = fx * u + cx;
+            T predicted_y = fy * v + cy;
+
+            residuals[0] = predicted_x - observed_p[0];
+            residuals[1] = predicted_y - observed_p[1];
 
             /////////////////////// homework2 ////////////////////////////
             return true;

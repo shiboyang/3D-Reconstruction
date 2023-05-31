@@ -485,7 +485,7 @@ namespace sfm {
         matcher.knnMatch(descriptors1, descriptors2, knn_matches, 2);
 
         //-- Filter matches using the Lowe's ratio test
-        const float ratio_thresh = 0.6f;
+        const float ratio_thresh = 0.3f;
         for (size_t i = 0; i < knn_matches.size(); i++) {
             if (knn_matches[i][0].distance < ratio_thresh * knn_matches[i][1].distance) {
                 matches.push_back(knn_matches[i][0]);
