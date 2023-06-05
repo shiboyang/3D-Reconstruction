@@ -374,6 +374,7 @@ namespace sfm {
         for (int i = 0; i < mask.rows; i++) {
             int inlier_idx = mask.at<u_int32_t>(i);
             // 将二维点与三维点进行关联
+            // 将已存在的点与地图上的点关联
             map_points[inlier_idx]->AddObservation(current_frame_->features_[current_3d_points_idx[inlier_idx]]);
             current_frame_->features_[current_3d_points_idx[inlier_idx]]->map_point_ = map_points[inlier_idx];
         }
@@ -478,7 +479,7 @@ namespace sfm {
 
     int Frontend::MatchFeatures(const cv::Mat &descriptors1,
                                 const cv::Mat &descriptors2,
-                                std::vector<cv::DMatch> &matches) {
+                                std::vector<cv::DMatch> &matches)  {
         //-- Matching descriptors using FLANN matcher
         cv::FlannBasedMatcher matcher;
         std::vector<std::vector<cv::DMatch>> knn_matches;
