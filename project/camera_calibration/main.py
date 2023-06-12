@@ -1,9 +1,9 @@
 import glob
 import os
 
-from calibration import (detect_corner,
-                         create_chessboard_world_coord,
-                         opencv_calibrate, calibrate)
+from camclib.calibration import (detect_corner,
+                                 create_chessboard_world_coord,
+                                 opencv_calibrate, calibrate)
 
 # corner_rows = 6
 # corner_clos = 7
