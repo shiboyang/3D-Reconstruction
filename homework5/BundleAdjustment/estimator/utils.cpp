@@ -1,27 +1,28 @@
 #include "utils.h"
 
 
-void CenterAndNormalizeImagePoints(const std::vector<Eigen::Vector2d>& points,
-                                   std::vector<Eigen::Vector2d>* normed_points,
-                                   Eigen::Matrix3d* matrix) {
+void CenterAndNormalizeImagePoints(const std::vector<Eigen::Vector2d> &points,
+                                   std::vector<Eigen::Vector2d> *normed_points,
+                                   Eigen::Matrix3d *matrix) {
     // Calculate centroid
     Eigen::Vector2d centroid(0, 0);
-    for (const Eigen::Vector2d& point : points) {
+    for (const Eigen::Vector2d &point: points) {
         centroid += point;
     }
     centroid /= points.size();
 
     // Root mean square error to centroid of all points
     double rms_mean_dist = 0;
-    for (const Eigen::Vector2d& point : points) {
+    for (const Eigen::Vector2d &point: points) {
         rms_mean_dist += (point - centroid).norm();
     }
     rms_mean_dist = rms_mean_dist / points.size();
 
     // Compose normalization matrix
     const double norm_factor = std::sqrt(2.0) / rms_mean_dist;
-    *matrix << norm_factor, 0, -norm_factor * centroid(0), 0, norm_factor,
-        -norm_factor * centroid(1), 0, 0, 1;
+    *matrix << norm_factor, 0, -norm_factor * centroid(0),
+            0, norm_factor, -norm_factor * centroid(1),
+            0, 0, 1;
 
     // Apply normalization matrix
     normed_points->resize(points.size());
@@ -53,51 +54,51 @@ void CenterAndNormalizeImagePoints(const std::vector<Eigen::Vector2d>& points,
     }
 }
 
-Eigen::Matrix3d CrossProductMatrix(const Eigen::Vector3d& vector) {
-  Eigen::Matrix3d matrix;
-  matrix << 0, -vector(2), vector(1), vector(2), 0, -vector(0), -vector(1),
-      vector(0), 0;
-  return matrix;
+Eigen::Matrix3d CrossProductMatrix(const Eigen::Vector3d &vector) {
+    Eigen::Matrix3d matrix;
+    matrix << 0, -vector(2), vector(1), vector(2), 0, -vector(0), -vector(1),
+            vector(0), 0;
+    return matrix;
 }
 
-double CalculateDepth(const Eigen::Matrix3x4d& proj_matrix,
-                      const Eigen::Vector3d& point3D) {
-  const double proj_z = proj_matrix.row(2).dot(point3D.homogeneous());
-  return proj_z * proj_matrix.col(2).norm();
+double CalculateDepth(const Eigen::Matrix3x4d &proj_matrix,
+                      const Eigen::Vector3d &point3D) {
+    const double proj_z = proj_matrix.row(2).dot(point3D.homogeneous());
+    return proj_z * proj_matrix.col(2).norm();
 }
 
-Eigen::Matrix3x4d ComposeProjectionMatrix(const Eigen::Matrix3d& R,
-                                          const Eigen::Vector3d& T) {
-  Eigen::Matrix3x4d proj_matrix;
-  proj_matrix.leftCols<3>() = R;
-  proj_matrix.rightCols<1>() = T;
-  return proj_matrix;
+Eigen::Matrix3x4d ComposeProjectionMatrix(const Eigen::Matrix3d &R,
+                                          const Eigen::Vector3d &T) {
+    Eigen::Matrix3x4d proj_matrix;
+    proj_matrix.leftCols<3>() = R;
+    proj_matrix.rightCols<1>() = T;
+    return proj_matrix;
 }
 
-bool CheckCheirality(const Eigen::Matrix3d& R, const Eigen::Vector3d& t,
-                     const std::vector<Eigen::Vector2d>& points1,
-                     const std::vector<Eigen::Vector2d>& points2,
-                     std::vector<Eigen::Vector3d>* points3D) {
-  const Eigen::Matrix3x4d proj_matrix1 = Eigen::Matrix3x4d::Identity();
-  const Eigen::Matrix3x4d proj_matrix2 = ComposeProjectionMatrix(R, t);
-  const double kMinDepth = std::numeric_limits<double>::epsilon();
-  const double max_depth = 1000.0f * (R.transpose() * t).norm();
-  points3D->clear();
-  for (size_t i = 0; i < points1.size(); ++i) {
-    const Eigen::Vector3d point3D =
-        TriangulatePoint(proj_matrix1, proj_matrix2, points1[i], points2[i]);
-    const double depth1 = CalculateDepth(proj_matrix1, point3D);
-    if (depth1 > kMinDepth && depth1 < max_depth) {
-      const double depth2 = CalculateDepth(proj_matrix2, point3D);
-      if (depth2 > kMinDepth && depth2 < max_depth) {
-        points3D->push_back(point3D);
-      }
+bool CheckCheirality(const Eigen::Matrix3d &R, const Eigen::Vector3d &t,
+                     const std::vector<Eigen::Vector2d> &points1,
+                     const std::vector<Eigen::Vector2d> &points2,
+                     std::vector<Eigen::Vector3d> *points3D) {
+    const Eigen::Matrix3x4d proj_matrix1 = Eigen::Matrix3x4d::Identity();
+    const Eigen::Matrix3x4d proj_matrix2 = ComposeProjectionMatrix(R, t);
+    const double kMinDepth = std::numeric_limits<double>::epsilon();
+    const double max_depth = 1000.0f * (R.transpose() * t).norm();
+    points3D->clear();
+    for (size_t i = 0; i < points1.size(); ++i) {
+        const Eigen::Vector3d point3D =
+                TriangulatePoint(proj_matrix1, proj_matrix2, points1[i], points2[i]);
+        const double depth1 = CalculateDepth(proj_matrix1, point3D);
+        if (depth1 > kMinDepth && depth1 < max_depth) {
+            const double depth2 = CalculateDepth(proj_matrix2, point3D);
+            if (depth2 > kMinDepth && depth2 < max_depth) {
+                points3D->push_back(point3D);
+            }
+        }
     }
-  }
-  return !points3D->empty();
+    return !points3D->empty();
 }
 
-Eigen::Matrix3x4d GetProjectMatrix(const Eigen::Matrix3d& intrinsic_matrix, Eigen::Matrix4d Tcw) {
+Eigen::Matrix3x4d GetProjectMatrix(const Eigen::Matrix3d &intrinsic_matrix, Eigen::Matrix4d Tcw) {
     Eigen::Matrix3x4d ProjectMat;
     ProjectMat.setZero();
     ProjectMat.block<3, 3>(0, 0) = intrinsic_matrix;
