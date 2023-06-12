@@ -107,7 +107,8 @@ def opencv_calibrate(obj_points: List[List[np.ndarray]],
         obj_point_list.append(np.asarray(obj_points[i]))
         img_point_list.append(np.asarray(img_points[i]))
 
-    retval, cameraMatrix, distCoeffs, rvecs, tvecs = cv2.calibrateCamera(obj_point_list, img_point_list, image_size, None,
+    retval, cameraMatrix, distCoeffs, rvecs, tvecs = cv2.calibrateCamera(obj_point_list, img_point_list, image_size,
+                                                                         None,
                                                                          None)
     print("ret: {}".format(retval))
     print("intrinsic matrix: \n {}".format(cameraMatrix))

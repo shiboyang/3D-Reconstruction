@@ -65,6 +65,23 @@ def _reproject_error(H: np.ndarray, obj_points: List[np.ndarray], img_points: Li
 
 
 def jac_h(H: np.ndarray, obj_points: List[np.ndarray], img_points: List[np.ndarray]):
+    """
+    在使用least_squares函数时建议提供Cost对x的偏导数矩阵
+    f(x_i) = (x*h_11 + y*h_12 + h_13) / (x*h_31 + y*h_32 + h_33) - y_i
+    f(x_i+1) = (x*h_21 + y*h_22 + h_23) / (x*h_31 + y*h_32 + h_33) - y_i+1
+
+    J_ij = [df(x_i)/dh_i0, df(x_i)/dh_i1, df(x_i)/dh_i2, df(x_i)/dh_i3..., df(x_i)/dh_i8]
+    ==>
+    J_i0 = x * 1. / x * h_31 + y * h_32 + h_33
+    J_i1 = y * 1. / x * h_31 + y * h_32 + h_33
+    J_i2 = 1. / x * h_31 + y * h_32 + h_33
+    J_i3 = 0
+    J_i4 = 0
+    J_i5 = 0
+    J_i6 = -1. * (x*h_11 + y*h_12 + h_13) / (x * h_31 + y * h_32 + h_33) ** 2 * x
+    J_i7 = -1. * (x*h_11 + y*h_12 + h_13) / (x * h_31 + y * h_32 + h_33) ** 2 * y
+    J_i8 = -1. * (x*h_11 + y*h_12 + h_13) / (x * h_31 + y * h_32 + h_33) ** 2
+    """
     num_points = len(obj_points)
     h11, h12, h13, h21, h22, h23, h31, h32, h33 = H.flatten()
 
@@ -75,7 +92,7 @@ def jac_h(H: np.ndarray, obj_points: List[np.ndarray], img_points: List[np.ndarr
         u = h11 * x + h12 * y + h13
         v = h21 * x + h22 * y + h23
         w = h31 * x + h32 * y + h33
-
+        # J_ij = df_i/dh_11 = d(u_i/w_i)/dh_ij
         jac_H[i * 2, 0] = x / w
         jac_H[i * 2, 1] = y / w
         jac_H[i * 2, 2] = 1 / w
@@ -84,6 +101,7 @@ def jac_h(H: np.ndarray, obj_points: List[np.ndarray], img_points: List[np.ndarr
         jac_H[i * 2, 7] = u * y * -1.0 / np.power(w, 2)
         jac_H[i * 2, 8] = u * -1.0 / np.power(w, 2)
 
+        # J_ij = df_i/dh_11 = d(v_i/w_i)/dh_ij
         jac_H[i * 2 + 1, 0:3] = 0.
         jac_H[i * 2 + 1, 3] = x / w
         jac_H[i * 2 + 1, 4] = y / w
